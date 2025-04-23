@@ -17,7 +17,14 @@ export async function getFateTemplate(id = DEFAULT_FATE_TEMPLATE_ID): Promise<Fa
   // KV 스토어에 없으면 파일 시스템에서 로드
   try {
     const promptPath = path.join(process.cwd(), 'prompts', 'fate-template.txt');
-    const promptContent = fs.readFileSync(promptPath, 'utf-8');
+    let promptContent;
+    
+    try {
+      promptContent = fs.readFileSync(promptPath, 'utf-8');
+    } catch (err) {
+      console.warn('Template file not found, using default template');
+      promptContent = "You are a Xianxia RPG fate generator.\nGenerate a fate based on this description: {{prompt}}\nRespond in JSON format with fate, description, startingStats, and startingTraits fields.";
+    }
     
     const defaultTemplate: FateTemplate = {
       id: DEFAULT_FATE_TEMPLATE_ID,
@@ -39,12 +46,38 @@ export async function getFateTemplate(id = DEFAULT_FATE_TEMPLATE_ID): Promise<Fa
     };
     
     // 템플릿을 KV 스토어에 저장
-    await saveFateTemplate(defaultTemplate);
+    try {
+      await saveFateTemplate(defaultTemplate);
+    } catch (error) {
+      console.error('Failed to save template to KV store:', error);
+      // Continue despite save error - we'll use the template in memory
+    }
     
     return defaultTemplate;
   } catch (error) {
     console.error('템플릿 파일 로드 오류:', error);
-    return null;
+    
+    // Fallback template in case of error
+    const fallbackTemplate: FateTemplate = {
+      id: DEFAULT_FATE_TEMPLATE_ID,
+      promptTemplate: "Generate a fate based on this description: {{prompt}}",
+      defaultTranslations: {
+        ko: {
+          title: '운명',
+          description: '당신의 운명'
+        },
+        en: {
+          title: 'Fate',
+          description: 'Your fate'
+        },
+        zh: {
+          title: '命运',
+          description: '你的命运'
+        }
+      }
+    };
+    
+    return fallbackTemplate;
   }
 }
 
@@ -66,21 +99,32 @@ export async function generateFate(request: FateRequest): Promise<FateResult> {
       prompt: request.prompt
     });
     
-    // Gemini API 호출
-    const response = await generateTextWithGemini(prompt, 0.7);
-    
-    // JSON 파싱
-    const result = extractJsonFromText(response);
-    
-    // 응답 형식 검증
-    if (!result.fate || !result.description || !result.startingStats || !result.startingTraits) {
-      throw new Error('Invalid response format from Gemini API');
+    let generatedText;
+    try {
+      // Gemini API 호출
+      generatedText = await generateTextWithGemini(prompt, 0.7);
+      
+      // JSON 파싱
+      const result = extractJsonFromText(generatedText);
+      
+      // 응답 형식 검증
+      if (!result.fate || !result.description || !result.startingStats || !result.startingTraits) {
+        throw new Error('Invalid response format from Gemini API');
+      }
+      
+      // 사용자의 운명 저장
+      try {
+        await kv.set(`user:${request.userId}:fate`, result);
+      } catch (kvError) {
+        console.error('KV 저장 오류:', kvError);
+        // Continue despite KV error
+      }
+      
+      return result as FateResult;
+    } catch (geminiError) {
+      console.error('Gemini API 오류:', geminiError);
+      throw geminiError;
     }
-    
-    // 사용자의 운명 저장
-    await kv.set(`user:${request.userId}:fate`, result);
-    
-    return result as FateResult;
   } catch (error) {
     console.error('운명 생성 중 오류 발생:', error);
     
@@ -110,12 +154,22 @@ export async function generateFate(request: FateRequest): Promise<FateResult> {
     }
     
     // 모의 데이터 저장
-    await kv.set(`user:${request.userId}:fate`, mockResponse);
+    try {
+      await kv.set(`user:${request.userId}:fate`, mockResponse);
+    } catch (kvError) {
+      console.error('KV 저장 오류:', kvError);
+      // Continue despite KV error
+    }
     
     return mockResponse;
   }
 }
 
 export async function getUserFate(userId: string): Promise<FateResult | null> {
-  return kv.get(`user:${userId}:fate`);
+  try {
+    return await kv.get(`user:${userId}:fate`);
+  } catch (error) {
+    console.error('Fate retrieval error:', error);
+    return null;
+  }
 }
