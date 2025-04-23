@@ -24,7 +24,18 @@
     "social": "Social",
     "exploration": "Exploration"
   },
+  "newGame": "New Game",
+  "username": "Username",
+  "usernamePlaceholder": "Enter your cultivator name",
+  "noFateSelected": "No fate selected",
+  "chooseFate": "Choose Fate",
+  "changeFate": "Change Fate",
+  "cancel": "Cancel",
+  "creating": "Creating...",
+  "startGame": "Start Game",
   "errors": {
-    "fetchFailed": "Failed to fetch data."
+    "fetchFailed": "Failed to fetch data.",
+    "usernameRequired": "Username is required.",
+    "createGameFailed": "Failed to create game."
   }
 }
