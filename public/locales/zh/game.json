@@ -1,0 +1,30 @@
+{
+  "title": "仙侠修炼",
+  "loading": "加载中...",
+  "backToHome": "返回首页",
+  "noProfile": "没有找到个人资料。",
+  "createProfile": "创建个人资料",
+  "life": "生命力",
+  "traits": "特性",
+  "noTraits": "尚无特性",
+  "stats": "属性",
+  "availableEvents": "可用事件",
+  "noEvents": "没有可用事件",
+  "eventDescription": "参与此事件获得经验并提升你的修为。",
+  "minutes": "分钟",
+  "risk": "风险",
+  "cultivation": "修炼",
+  "cultivationDesc": "通过修炼提升你的属性和技能。",
+  "inventory": "物品栏",
+  "inventoryDesc": "管理你的物品和装备。",
+  "achievements": "成就",
+  "achievementsDesc": "查看你的成就和奖励。",
+  "eventTypes": {
+    "combat": "战斗",
+    "social": "社交",
+    "exploration": "探索"
+  },
+  "errors": {
+    "fetchFailed": "获取数据失败。"
+  }
+}
