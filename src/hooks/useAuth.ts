@@ -53,6 +53,7 @@ export const useAuth = () => {
         });
       }
     } catch (error) {
+      console.error('인증 상태 확인 오류:', error);
       setAuthState({
         user: null,
         isLoading: false,
@@ -95,6 +96,7 @@ export const useAuth = () => {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다.';
+      console.error('로그인 오류:', error);
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
@@ -137,6 +139,7 @@ export const useAuth = () => {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '회원가입 중 오류가 발생했습니다.';
+      console.error('회원가입 오류:', error);
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
@@ -177,6 +180,7 @@ export const useAuth = () => {
         return false;
       }
     } catch (error) {
+      console.error('로그아웃 오류:', error);
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
@@ -189,9 +193,16 @@ export const useAuth = () => {
   // 인증이 필요한 페이지 접근 처리
   const requireAuth = useCallback((redirectUrl = '/auth/login') => {
     if (!authState.isLoading && !authState.isAuthenticated) {
-      router.push(`${redirectUrl}?redirect=${encodeURIComponent(router.asPath)}`);
+      // 인증 상태를 확인하기 위해 한 번 더 시도
+      checkAuth().then(() => {
+        // 여전히 인증되지 않은 경우 리디렉션
+        if (!authState.isAuthenticated) {
+          console.log('인증이 필요한 페이지 접근 - 리디렉션:', redirectUrl);
+          router.push(`${redirectUrl}?redirect=${encodeURIComponent(router.asPath)}`);
+        }
+      });
     }
-  }, [authState.isLoading, authState.isAuthenticated, router]);
+  }, [authState.isLoading, authState.isAuthenticated, router, checkAuth]);
 
   // 컴포넌트 마운트 시 인증 상태 확인
   useEffect(() => {
