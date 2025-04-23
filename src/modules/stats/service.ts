@@ -1,5 +1,7 @@
 import { kv } from '@vercel/kv';
 import { Stat, StatKey, Stats, UserProfile } from './types';
+import { FateResult } from '@modules/fate/types';
+import { getUserFate } from '@modules/fate/service';
 
 const EP_BASE = 100;
 const GRADE_POWER = 1.5;
@@ -47,6 +49,33 @@ export async function createUserProfile(userId: string, username: string, locale
     reincarnationPoints: 0,
     achievements: []
   };
+  
+  // 운명 데이터 확인 및 적용
+  try {
+    const fateData = await getUserFate(userId);
+    
+    if (fateData) {
+      // 운명에서 설정한 초기 스탯값을 적용
+      if (fateData.startingStats) {
+        Object.entries(fateData.startingStats).forEach(([key, value]) => {
+          if (key in initialStats) {
+            profile.stats[key as StatKey].value = value;
+          }
+        });
+      }
+      
+      // 운명 특성 적용
+      if (fateData.startingTraits && Array.isArray(fateData.startingTraits)) {
+        profile.traits = [...fateData.startingTraits];
+      }
+      
+      // 운명 이름 저장
+      profile.fate = fateData.fate;
+    }
+  } catch (error) {
+    console.error('운명 데이터 적용 중 오류 발생:', error);
+    // 오류가 발생해도 기본 프로필은 생성
+  }
   
   await kv.set(`user:${userId}:profile`, profile);
   
@@ -100,4 +129,35 @@ export async function updateUserProfile(userId: string, updates: Partial<UserPro
   await kv.set(`user:${userId}:profile`, updatedProfile);
   
   return updatedProfile;
+}
+
+// 운명 데이터를 기반으로 프로필 초기화
+export async function initializeProfileWithFate(userId: string, fateData: FateResult): Promise<UserProfile> {
+  const profile = await getUserProfile(userId);
+  
+  if (!profile) {
+    throw new Error('User profile not found');
+  }
+  
+  // 운명에서 설정한 초기 스탯값을 적용
+  if (fateData.startingStats) {
+    Object.entries(fateData.startingStats).forEach(([key, value]) => {
+      if (key in profile.stats) {
+        profile.stats[key as StatKey].value = value;
+      }
+    });
+  }
+  
+  // 운명 특성 적용
+  if (fateData.startingTraits && Array.isArray(fateData.startingTraits)) {
+    profile.traits = [...fateData.startingTraits];
+  }
+  
+  // 운명 이름 저장
+  profile.fate = fateData.fate;
+  
+  // 업데이트된 프로필 저장
+  await kv.set(`user:${userId}:profile`, profile);
+  
+  return profile;
 }
