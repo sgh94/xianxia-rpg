@@ -28,7 +28,7 @@
 7. 실패시 패널티 (선택적)
 
 ## 응답 형식
-아래 JSON 형식으로 응답해주세요.
+아래 JSON 형식으로 응답해주세요. 설명이나 해설 없이 JSON만 반환하세요.
 
 ```json
 {
@@ -84,3 +84,4 @@
 4. 항상 안전한 선택지(성공 확률 1.0)를 하나 이상 포함시켜주세요.
 5. 선협 설정에 맞는 용어와 개념을 활용해주세요 (기, 도, 무공, 단약, 수련 등).
 6. 응답은 오직 JSON 형식만 포함해야 합니다.
+7. 스탯 이름은 다음 중에서 정확히 선택해야 합니다: "attack", "fortitude", "critical", "technique", "qiGeneration", "perception", "cultSpeed", "clarity", "pillRefining", "forging", "alchemy", "gemCarving", "luck", "fiveElements".
