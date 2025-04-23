@@ -29,3 +29,4 @@
 - 운명은 사용자의 선호도와 키워드를 반영해야 합니다.
 - 스탯과 특성은 사용자의 선호도와 일치해야 합니다.
 - 응답은 오직 JSON 형식만 포함해야 하며, 다른 설명이나 마크다운은 생략하세요.
+- 스탯 이름은 다음 중에서 정확히 선택해야 합니다: "attack", "fortitude", "critical", "technique", "qiGeneration", "perception", "cultSpeed", "clarity", "pillRefining", "forging", "alchemy", "gemCarving", "luck", "fiveElements".
