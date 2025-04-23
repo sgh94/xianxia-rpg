@@ -58,8 +58,33 @@ export default function NewGamePage() {
       // 사용자 ID가 URL에서 왔는지 확인하고, 없으면 새로 생성
       const currentUserId = userId || ('test-user-' + Date.now());
       
-      // 1. 프로필 생성
-      const profileResponse = await fetch('/api/stats/profile', {
+      // 1. 운명이 아직 선택되지 않았다면 먼저 운명 선택 페이지로 이동
+      if (!fate && !userId) {
+        router.push('/game/fate');
+        return;
+      }
+      
+      // 2. 운명을 선택했다면 연결
+      if (fate && !userId) {
+        // 운명 데이터 저장
+        const saveResponse = await fetch('/api/fate/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: currentUserId,
+            fate,
+          }),
+        });
+        
+        if (!saveResponse.ok) {
+          throw new Error('Failed to save fate data');
+        }
+      }
+      
+      // 3. 게임 생성 API 호출
+      const gameResponse = await fetch('/api/game/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,25 +96,8 @@ export default function NewGamePage() {
         }),
       });
       
-      if (!profileResponse.ok) {
-        throw new Error('Failed to create profile');
-      }
-      
-      // 2. 운명을 선택했다면 연결
-      if (fate) {
-        // 운명 데이터가 아직 저장되지 않았다면 저장
-        if (!userId) {
-          await fetch('/api/fate/save', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: currentUserId,
-              fate,
-            }),
-          });
-        }
+      if (!gameResponse.ok) {
+        throw new Error('Failed to create game');
       }
       
       // 게임 메인 화면으로 이동
@@ -171,7 +179,7 @@ export default function NewGamePage() {
             <button
               onClick={handleCreateGame}
               className="flex-1 py-2 bg-indigo-600 rounded-md font-medium hover:bg-indigo-700 transition-colors"
-              disabled={isLoading}
+              disabled={isLoading || (!fate && !userId)}
             >
               {isLoading ? t('game:creating') : t('game:startGame')}
             </button>
