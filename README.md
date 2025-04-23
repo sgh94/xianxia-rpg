@@ -5,7 +5,7 @@
 ## 프로젝트 개요
 
 - **장르**: Xianxia 시뮬레이션 RPG (분기 내러티브 및 리플레이)
-- **개발 도구**: Claude Desktop (AI 스토리, 이벤트, 밸런스 생성)
+- **개발 도구**: Google Gemini API (AI 스토리, 이벤트, 밸런스 생성)
 - **프론트엔드 & 배포**: Next.js (React) + Vercel
 - **데이터베이스**: Vercel KV (Redis API)
 
@@ -35,11 +35,26 @@ yarn install
 
 3. 환경 변수 설정
 `.env.example`을 복사하여 `.env.local` 파일을 생성하고 필요한 키를 입력하세요.
+```bash
+# Vercel KV 설정
+VERCEL_KV_URL=
+VERCEL_KV_TOKEN=
+
+# Gemini API 설정
+GEMINI_API_KEY=
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
+```
 
 4. 개발 서버 실행
 ```bash
 yarn dev
 ```
+
+## Gemini API 설정 방법
+
+1. [Google AI Studio](https://makersuite.google.com/) 또는 [Google Cloud Console](https://console.cloud.google.com/)에서 계정을 생성합니다.
+2. Gemini API 키를 발급받습니다.
+3. 발급받은 API 키를 `.env.local` 파일의 `GEMINI_API_KEY` 변수에 설정합니다.
 
 ## 프로젝트 구조
 
@@ -49,7 +64,7 @@ yarn dev
 - `/src/lib` - 유틸리티 및 헬퍼 함수
 - `/src/styles` - 전역 스타일
 - `/public/locales` - 국제화 파일
-- `/prompts` - Claude API 프롬프트 템플릿
+- `/prompts` - Gemini API 프롬프트 템플릿
 
 ## 데이터 모델
 
