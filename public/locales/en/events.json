@@ -1,0 +1,18 @@
+{
+  "title": "Event",
+  "loading": "Event in progress...",
+  "noEvent": "No available events.",
+  "backToGame": "Back to Game",
+  "chooseAction": "Choose Your Action",
+  "success": "Success!",
+  "failure": "Failure!",
+  "rewards": "Rewards",
+  "penalties": "Penalties",
+  "life": "Life Force",
+  "newTrait": "New Trait",
+  "continue": "Continue",
+  "errors": {
+    "generateFailed": "Failed to generate event.",
+    "resolveFailed": "Failed to resolve event."
+  }
+}
