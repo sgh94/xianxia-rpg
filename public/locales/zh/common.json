@@ -1,0 +1,28 @@
+{
+  "title": "仙侠 RPG",
+  "welcome": "欢迎来到仙侠世界",
+  "description": "一款具有分支叙事和可重玩"运行"特点的仙侠模拟RPG。通过修炼增强你的力量，挑战你的命运。",
+  "newGame": "新游戏",
+  "continueGame": "继续游戏",
+  "stats": {
+    "attack": "攻击力",
+    "fortitude": "体力",
+    "critical": "暴击",
+    "technique": "技术",
+    "qiGeneration": "气生成",
+    "perception": "感知",
+    "cultSpeed": "修炼速度",
+    "clarity": "清晰度",
+    "pillRefining": "炼丹",
+    "forging": "锻造",
+    "alchemy": "炼金",
+    "gemCarving": "宝石雕刻",
+    "luck": "幸运",
+    "fiveElements": "五行"
+  },
+  "fate": {
+    "title": "选择你的命运",
+    "question": "你想要什么样的人生？",
+    "submit": "确定命运"
+  }
+}
