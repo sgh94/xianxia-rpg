@@ -1,77 +1,73 @@
-import React from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { useAuthContext } from '@contexts/AuthContext';
 import LanguageSwitcher from '@components/LanguageSwitcher';
 
 const AuthHeader = () => {
-  const { t } = useTranslation('common');
-  const { user, logout, isAuthenticated } = useAuthContext();
+  const { t } = useTranslation(['common', 'auth']);
+  const { isAuthenticated, user, logout } = useAuthContext();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    setIsMenuOpen(false);
+  };
 
   return (
-    <header className="bg-gray-800 text-white py-4">
-      <div className="container mx-auto px-4 flex justify-between items-center">
+    <header className="bg-gray-800 p-4 shadow-md">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link href="/" className="text-2xl font-bold text-white">
+          {t('title')}
+        </Link>
+
         <div className="flex items-center">
-          <Link href="/">
-            <span className="text-xl font-bold cursor-pointer">
-              Xianxia RPG
-            </span>
-          </Link>
-          <nav className="ml-8">
-            <ul className="flex space-x-6">
-              <li>
-                <Link href="/">
-                  <span className="hover:text-gray-300 cursor-pointer">
-                    {t('home')}
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/play">
-                  <span className="hover:text-gray-300 cursor-pointer">
-                    {t('play')}
-                  </span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/about">
-                  <span className="hover:text-gray-300 cursor-pointer">
-                    {t('about')}
-                  </span>
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-        
-        <div className="flex items-center space-x-4">
           <LanguageSwitcher />
           
           {isAuthenticated ? (
-            <div className="flex items-center space-x-4">
-              <Link href="/profile">
-                <span className="hover:text-gray-300 cursor-pointer">
-                  {user?.username || t('profile')}
-                </span>
-              </Link>
+            <div className="relative ml-4">
               <button
-                onClick={logout}
-                className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
+                className="flex items-center space-x-2 text-white hover:text-indigo-300 focus:outline-none"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                {t('logout')}
+                <span>{user?.username || '사용자'}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
               </button>
+              
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-10">
+                  <Link
+                    href="/game/continue"
+                    className="block px-4 py-2 text-sm text-white hover:bg-gray-600"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('auth:myGames')}
+                  </Link>
+                  <Link
+                    href="/auth/profile"
+                    className="block px-4 py-2 text-sm text-white hover:bg-gray-600"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('auth:profile')}
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-600"
+                  >
+                    {t('auth:logout')}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="flex space-x-2">
-              <Link href="/login">
-                <span className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded cursor-pointer">
-                  {t('login')}
-                </span>
+            <div className="ml-4 flex space-x-4">
+              <Link href="/auth/login" className="text-white hover:text-indigo-300">
+                {t('auth:login')}
               </Link>
-              <Link href="/register">
-                <span className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded cursor-pointer">
-                  {t('register')}
-                </span>
+              <Link href="/auth/register" className="text-white hover:text-indigo-300">
+                {t('auth:register')}
               </Link>
             </div>
           )}
