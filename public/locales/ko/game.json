@@ -1,0 +1,30 @@
+{
+  "title": "선협 수련",
+  "loading": "로딩 중...",
+  "backToHome": "홈으로 돌아가기",
+  "noProfile": "프로필이 없습니다.",
+  "createProfile": "프로필 생성하기",
+  "life": "생명력",
+  "traits": "특성",
+  "noTraits": "특성이 없습니다",
+  "stats": "스탯",
+  "availableEvents": "이용 가능한 이벤트",
+  "noEvents": "이벤트가 없습니다",
+  "eventDescription": "이 이벤트에 참여하여 경험을 쌓고 수련하세요.",
+  "minutes": "분",
+  "risk": "위험도",
+  "cultivation": "수련",
+  "cultivationDesc": "수련을 통해 스탯과 기술을 향상시키세요.",
+  "inventory": "인벤토리",
+  "inventoryDesc": "아이템과 장비를 관리하세요.",
+  "achievements": "업적",
+  "achievementsDesc": "획득한 업적과 보상을 확인하세요.",
+  "eventTypes": {
+    "combat": "전투",
+    "social": "교류",
+    "exploration": "탐험"
+  },
+  "errors": {
+    "fetchFailed": "데이터를 불러오는 데 실패했습니다."
+  }
+}
