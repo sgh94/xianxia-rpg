@@ -5,34 +5,41 @@ import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Link from 'next/link';
 import { FateResult } from '@modules/fate/types';
+import AuthHeader from '@components/AuthHeader';
+import { useAuthContext } from '@contexts/AuthContext';
 
 export default function NewGamePage() {
   const router = useRouter();
   const { t } = useTranslation(['common', 'fate', 'game']);
+  const { isAuthenticated, requireAuth } = useAuthContext();
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingFate, setIsLoadingFate] = useState(false);
   const [error, setError] = useState('');
   const [username, setUsername] = useState('');
   const [fate, setFate] = useState<FateResult | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
 
-  // URL에서 userId를 가져와서 운명 데이터 로드
+  // 인증 확인
   useEffect(() => {
-    const { userId } = router.query;
-    
-    if (userId && typeof userId === 'string') {
-      setUserId(userId);
+    requireAuth();
+  }, [requireAuth]);
+
+  // 이전에 선택한 운명 데이터 로드
+  useEffect(() => {
+    if (isAuthenticated) {
       setIsLoadingFate(true);
       
-      fetch(`/api/fate/get?userId=${userId}`)
+      fetch(`/api/fate/get`)
         .then(response => {
-          if (!response.ok) {
+          if (!response.ok && response.status !== 404) {
             throw new Error('운명 데이터를 가져오는데 실패했습니다.');
           }
           return response.json();
         })
         .then(data => {
-          setFate(data);
+          if (data && !data.message) {
+            setFate(data);
+          }
         })
         .catch(err => {
           console.error('운명 데이터 로드 실패:', err);
@@ -42,7 +49,7 @@ export default function NewGamePage() {
           setIsLoadingFate(false);
         });
     }
-  }, [router.query, t]);
+  }, [isAuthenticated, t]);
 
   // 게임 시작 처리
   const handleCreateGame = async () => {
@@ -55,45 +62,30 @@ export default function NewGamePage() {
     setError('');
     
     try {
-      // 사용자 ID가 URL에서 왔는지 확인하고, 없으면 새로 생성
-      const currentUserId = userId || ('test-user-' + Date.now());
+      // 1. 운명이 아직 선택되지 않았다면 먼저 운명 선택 페이지로 이동
+      if (!fate) {
+        router.push('/game/fate');
+        return;
+      }
       
-      // 1. 프로필 생성
-      const profileResponse = await fetch('/api/stats/profile', {
+      // 2. 게임 생성 API 호출
+      const gameResponse = await fetch('/api/game/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: currentUserId,
           username,
           locale: router.locale,
         }),
       });
       
-      if (!profileResponse.ok) {
-        throw new Error('Failed to create profile');
+      if (!gameResponse.ok) {
+        throw new Error('Failed to create game');
       }
       
-      // 2. 운명을 선택했다면 연결
-      if (fate) {
-        // 운명 데이터가 아직 저장되지 않았다면 저장
-        if (!userId) {
-          await fetch('/api/fate/save', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: currentUserId,
-              fate,
-            }),
-          });
-        }
-      }
-      
-      // 게임 메인 화면으로 이동
-      router.push(`/game/main?userId=${currentUserId}`);
+      // 3. 게임 메인 화면으로 이동
+      router.push(`/game/main`);
       
     } catch (err) {
       console.error('Error:', err);
@@ -107,8 +99,23 @@ export default function NewGamePage() {
     router.push('/game/fate');
   };
 
+  // 인증되지 않은 상태에서는 로딩 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white">
+        <AuthHeader />
+        <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-xl">{t('game:authRequired')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      <AuthHeader />
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold text-center mb-8">{t('game:newGame')}</h1>
         
@@ -171,7 +178,7 @@ export default function NewGamePage() {
             <button
               onClick={handleCreateGame}
               className="flex-1 py-2 bg-indigo-600 rounded-md font-medium hover:bg-indigo-700 transition-colors"
-              disabled={isLoading}
+              disabled={isLoading || !fate}
             >
               {isLoading ? t('game:creating') : t('game:startGame')}
             </button>
@@ -185,7 +192,7 @@ export default function NewGamePage() {
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
   return {
     props: {
-      ...(await serverSideTranslations(locale || 'ko', ['common', 'fate', 'game'])),
+      ...(await serverSideTranslations(locale || 'ko', ['common', 'fate', 'game', 'auth'])),
     },
   };
 };
