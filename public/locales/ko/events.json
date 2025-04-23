@@ -1,0 +1,18 @@
+{
+  "title": "이벤트",
+  "loading": "이벤트 진행 중...",
+  "noEvent": "사용 가능한 이벤트가 없습니다.",
+  "backToGame": "게임으로 돌아가기",
+  "chooseAction": "행동 선택",
+  "success": "성공!",
+  "failure": "실패!",
+  "rewards": "보상",
+  "penalties": "패널티",
+  "life": "생명력",
+  "newTrait": "새로운 특성",
+  "continue": "계속하기",
+  "errors": {
+    "generateFailed": "이벤트를 생성하는 데 실패했습니다.",
+    "resolveFailed": "이벤트를 처리하는 데 실패했습니다."
+  }
+}
