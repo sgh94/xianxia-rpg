@@ -9,12 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@vercel/kv": "^1.0.0",
     "next": "^14.0.0",
     "next-i18next": "^15.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-query": "^3.39.3",
-    "@vercel/kv": "^1.0.0"
+    "react-query": "^3.39.3"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
