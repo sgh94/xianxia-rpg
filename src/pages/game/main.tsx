@@ -17,7 +17,7 @@ interface GameState {
     realm: string;
     level: number;
   };
-  stats: Record<string, number>;
+  stats: Record<string, any>; // 스탯 객체 타입을 any로 변경 (다양한 타입 허용)
   traits: string[];
   fate?: string;
   inventory: {
@@ -197,6 +197,21 @@ export default function MainGamePage() {
     loadGameState();
   }, [userId, isAuthenticated]);
 
+  // stats 객체를 안전하게 처리하는 함수
+  const getStatValue = (stat: string): number => {
+    if (!gameState.stats) return 0;
+    
+    const statData = gameState.stats[stat];
+    // 객체인 경우 value 속성 반환, 숫자인 경우 그대로 반환
+    if (typeof statData === 'object' && statData !== null && 'value' in statData) {
+      return statData.value || 0;
+    }
+    if (typeof statData === 'number') {
+      return statData;
+    }
+    return 0;
+  };
+
   // 로딩 화면
   if (isLoading) {
     return (
@@ -223,6 +238,9 @@ export default function MainGamePage() {
       </div>
     );
   }
+
+  // 스탯 키 배열 생성 - 객체인 경우와 그렇지 않은 경우 모두 처리
+  const statKeys = gameState.stats ? Object.keys(gameState.stats) : [];
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -288,10 +306,10 @@ export default function MainGamePage() {
               {t('game:stats')}
             </h2>
             <div className="grid grid-cols-2 gap-2">
-              {Object.entries(gameState.stats).map(([stat, value]) => (
+              {statKeys.map((stat) => (
                 <div key={stat} className="flex justify-between">
                   <span>{t(`stats.${stat}`)}</span>
-                  <span className="text-indigo-300">{value}</span>
+                  <span className="text-indigo-300">{getStatValue(stat)}</span>
                 </div>
               ))}
             </div>
