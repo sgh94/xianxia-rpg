@@ -5,6 +5,8 @@ import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Link from 'next/link';
 import { FateResult } from '@modules/fate/types';
+import AuthHeader from '@components/AuthHeader';
+import { useAuthContext } from '@contexts/AuthContext';
 
 // 게임 상태 인터페이스
 interface GameState {
@@ -66,6 +68,8 @@ const initialState: GameState = {
 export default function MainGamePage() {
   const router = useRouter();
   const { t } = useTranslation(['common', 'game']);
+  const { isAuthenticated, requireAuth } = useAuthContext();
+  
   const [gameState, setGameState] = useState<GameState>(initialState);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -75,12 +79,18 @@ export default function MainGamePage() {
 
   const { userId } = router.query;
 
+  // 인증 확인
+  useEffect(() => {
+    requireAuth();
+  }, [requireAuth]);
+
   // 게임 상태 저장 함수
   const saveGameState = useCallback(async () => {
-    if (!userId || !gameState.userId) return;
+    if (!gameState.userId) return;
     
     try {
       setSaveStatus('saving');
+      console.log('게임 상태 저장 중...');
       
       const response = await fetch('/api/game/save', {
         method: 'POST',
@@ -88,7 +98,6 @@ export default function MainGamePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId,
           gameState: {
             ...gameState,
             lastSaved: Date.now(),
@@ -97,10 +106,12 @@ export default function MainGamePage() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to save game state');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save game state');
       }
       
       const data = await response.json();
+      console.log('게임 상태 저장 성공:', data);
       
       setLastSaved(new Date());
       setSaveStatus('saved');
@@ -119,11 +130,11 @@ export default function MainGamePage() {
         setSaveStatus('idle');
       }, 3000);
     }
-  }, [userId, gameState]);
+  }, [gameState]);
 
   // 정기적인 자동 저장 설정
   useEffect(() => {
-    if (!userId || isLoading) return;
+    if (!gameState.userId || isLoading) return;
     
     // 5분마다 자동 저장
     const autoSaveInterval = setInterval(() => {
@@ -131,26 +142,36 @@ export default function MainGamePage() {
     }, 5 * 60 * 1000);
     
     return () => clearInterval(autoSaveInterval);
-  }, [userId, isLoading, saveGameState]);
+  }, [gameState.userId, isLoading, saveGameState]);
 
   // 게임 데이터 로드
   useEffect(() => {
+    if (!isAuthenticated) return;
+    
     if (!userId) {
-      router.push('/');
+      console.error('userId is missing, cannot load game data');
+      setError('게임 데이터를 불러올 수 없습니다 (사용자 ID 누락)');
+      setIsLoading(false);
       return;
     }
     
     async function loadGameState() {
       setIsLoading(true);
+      setError('');
+      
       try {
+        console.log(`게임 데이터 로드 중... (userId: ${userId})`);
+        
         // 게임 상태 로드 API 호출
         const response = await fetch(`/api/game/load?userId=${userId}`);
         
         if (!response.ok) {
-          throw new Error('Failed to load game data');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to load game data');
         }
         
         const data = await response.json();
+        console.log('게임 데이터 로드 성공:', data);
         
         // 게임 상태 설정
         setGameState(data.gameState);
@@ -167,14 +188,14 @@ export default function MainGamePage() {
         
       } catch (err) {
         console.error('Error loading game state:', err);
-        setError('Failed to load game data');
+        setError('게임 데이터를 불러오는데 실패했습니다');
       } finally {
         setIsLoading(false);
       }
     }
     
     loadGameState();
-  }, [router, userId]);
+  }, [userId, isAuthenticated]);
 
   // 로딩 화면
   if (isLoading) {
@@ -205,6 +226,7 @@ export default function MainGamePage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      <AuthHeader />
       <div className="container mx-auto px-4 py-6">
         <header className="mb-8 flex justify-between items-center">
           <div>
@@ -280,7 +302,7 @@ export default function MainGamePage() {
             <h2 className="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">
               {t('game:traits')}
             </h2>
-            {gameState.traits.length > 0 ? (
+            {gameState.traits && gameState.traits.length > 0 ? (
               <ul className="list-disc list-inside">
                 {gameState.traits.map((trait, index) => (
                   <li key={index} className="mb-1">{trait}</li>
@@ -323,7 +345,7 @@ export default function MainGamePage() {
               <p className="mb-2">
                 <span className="text-gray-400">{t('game:currency')}:</span> {gameState.inventory.currency}
               </p>
-              {gameState.inventory.items.length > 0 ? (
+              {gameState.inventory.items && gameState.inventory.items.length > 0 ? (
                 <ul className="list-disc list-inside">
                   {gameState.inventory.items.map((item) => (
                     <li key={item.id} className="mb-1">
@@ -345,7 +367,7 @@ export default function MainGamePage() {
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
   return {
     props: {
-      ...(await serverSideTranslations(locale || 'ko', ['common', 'game'])),
+      ...(await serverSideTranslations(locale || 'ko', ['common', 'game', 'auth'])),
     },
   };
 };
