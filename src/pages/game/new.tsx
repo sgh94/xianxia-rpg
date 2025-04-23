@@ -68,6 +68,8 @@ export default function NewGamePage() {
         return;
       }
       
+      console.log('게임 생성 시작:', { username, locale: router.locale });
+      
       // 2. 게임 생성 API 호출
       const gameResponse = await fetch('/api/game/create', {
         method: 'POST',
@@ -81,13 +83,20 @@ export default function NewGamePage() {
       });
       
       const responseData = await gameResponse.json();
+      console.log('게임 생성 응답:', responseData);
       
       if (!gameResponse.ok) {
         throw new Error(responseData.message || 'Failed to create game');
       }
       
-      // 3. 게임 메인 화면으로 이동
-      router.push(`/game/main`);
+      // 3. 게임 메인 화면으로 이동할 때 userId를 쿼리 파라미터로 전달
+      const userId = responseData.profile?.id;
+      if (!userId) {
+        throw new Error('사용자 ID가 응답에 없습니다');
+      }
+      
+      console.log('게임 생성 성공, 리디렉션 중...');
+      router.push(`/game/main?userId=${userId}`);
       
     } catch (err: any) {
       console.error('Game creation error:', err);
