@@ -1,0 +1,28 @@
+{
+  "title": "선협 RPG",
+  "welcome": "선협의 세계에 오신 것을 환영합니다",
+  "description": "분기 내러티브와 리플레이 가능한 '런'이 특징인 선협 시뮬레이션 RPG입니다. 수련을 통해 강해지고, 운명에 도전하세요.",
+  "newGame": "새 게임 시작",
+  "continueGame": "이어하기",
+  "stats": {
+    "attack": "공격력",
+    "fortitude": "체력",
+    "critical": "치명타",
+    "technique": "기술",
+    "qiGeneration": "기 생성",
+    "perception": "감지력",
+    "cultSpeed": "수련 속도",
+    "clarity": "명료함",
+    "pillRefining": "단약 정련",
+    "forging": "단조",
+    "alchemy": "연금술",
+    "gemCarving": "보석 조각",
+    "luck": "행운",
+    "fiveElements": "오행"
+  },
+  "fate": {
+    "title": "운명 선택",
+    "question": "어떤 삶을 살고 싶으신가요?",
+    "submit": "운명 확인"
+  }
+}
