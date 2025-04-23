@@ -24,7 +24,18 @@
     "social": "교류",
     "exploration": "탐험"
   },
+  "newGame": "새 게임",
+  "username": "사용자 이름",
+  "usernamePlaceholder": "수련자 이름을 입력하세요",
+  "noFateSelected": "선택된 운명이 없습니다",
+  "chooseFate": "운명 선택하기",
+  "changeFate": "운명 변경하기",
+  "cancel": "취소",
+  "creating": "생성 중...",
+  "startGame": "게임 시작",
   "errors": {
-    "fetchFailed": "데이터를 불러오는 데 실패했습니다."
+    "fetchFailed": "데이터를 불러오는 데 실패했습니다.",
+    "usernameRequired": "사용자 이름을 입력해주세요.",
+    "createGameFailed": "게임 생성에 실패했습니다."
   }
 }
