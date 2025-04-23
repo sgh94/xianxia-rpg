@@ -10,9 +10,39 @@ export default function NewGamePage() {
   const router = useRouter();
   const { t } = useTranslation(['common', 'fate', 'game']);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingFate, setIsLoadingFate] = useState(false);
   const [error, setError] = useState('');
   const [username, setUsername] = useState('');
   const [fate, setFate] = useState<FateResult | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // URL에서 userId를 가져와서 운명 데이터 로드
+  useEffect(() => {
+    const { userId } = router.query;
+    
+    if (userId && typeof userId === 'string') {
+      setUserId(userId);
+      setIsLoadingFate(true);
+      
+      fetch(`/api/fate/get?userId=${userId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('운명 데이터를 가져오는데 실패했습니다.');
+          }
+          return response.json();
+        })
+        .then(data => {
+          setFate(data);
+        })
+        .catch(err => {
+          console.error('운명 데이터 로드 실패:', err);
+          setError(t('game:errors.loadFateFailed'));
+        })
+        .finally(() => {
+          setIsLoadingFate(false);
+        });
+    }
+  }, [router.query, t]);
 
   // 게임 시작 처리
   const handleCreateGame = async () => {
@@ -25,9 +55,8 @@ export default function NewGamePage() {
     setError('');
     
     try {
-      // 실제 구현에서는 여기서 사용자 프로필을 생성하고
-      // 운명을 연결하는 API 호출이 필요합니다.
-      const userId = 'test-user-' + Date.now();
+      // 사용자 ID가 URL에서 왔는지 확인하고, 없으면 새로 생성
+      const currentUserId = userId || ('test-user-' + Date.now());
       
       // 1. 프로필 생성
       const profileResponse = await fetch('/api/stats/profile', {
@@ -36,7 +65,7 @@ export default function NewGamePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId,
+          userId: currentUserId,
           username,
           locale: router.locale,
         }),
@@ -48,11 +77,23 @@ export default function NewGamePage() {
       
       // 2. 운명을 선택했다면 연결
       if (fate) {
-        // 실제 구현에서는 프로필에 운명 정보를 연결하는 로직 추가
+        // 운명 데이터가 아직 저장되지 않았다면 저장
+        if (!userId) {
+          await fetch('/api/fate/save', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: currentUserId,
+              fate,
+            }),
+          });
+        }
       }
       
       // 게임 메인 화면으로 이동
-      router.push(`/game/main?userId=${userId}`);
+      router.push(`/game/main?userId=${currentUserId}`);
       
     } catch (err) {
       console.error('Error:', err);
@@ -89,7 +130,11 @@ export default function NewGamePage() {
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-3">{t('fate.title')}</h2>
             
-            {fate ? (
+            {isLoadingFate ? (
+              <div className="bg-gray-700 rounded-lg p-4 text-center">
+                <p>{t('game:loadingFate')}</p>
+              </div>
+            ) : fate ? (
               <div className="bg-gray-700 rounded-lg p-4">
                 <h3 className="font-semibold mb-2">{fate.fate}</h3>
                 <p className="text-sm mb-4">{fate.description}</p>
