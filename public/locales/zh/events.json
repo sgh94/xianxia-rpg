@@ -1,0 +1,18 @@
+{
+  "title": "事件",
+  "loading": "事件进行中...",
+  "noEvent": "没有可用的事件。",
+  "backToGame": "返回游戏",
+  "chooseAction": "选择你的行动",
+  "success": "成功！",
+  "failure": "失败！",
+  "rewards": "奖励",
+  "penalties": "惩罚",
+  "life": "生命力",
+  "newTrait": "新特性",
+  "continue": "继续",
+  "errors": {
+    "generateFailed": "生成事件失败。",
+    "resolveFailed": "处理事件失败。"
+  }
+}
