@@ -27,9 +27,27 @@
   "inventory": "소지품",
   "currency": "영석",
   "emptyInventory": "소지품이 없습니다",
+  
+  "save": "저장하기",
+  "saving": "저장 중...",
+  "saved": "저장 완료",
+  "saveError": "저장 실패",
+  "lastSaved": "마지막 저장",
+  "continueGame": "이어하기",
+  "loadingSessions": "저장된 게임 불러오는 중...",
+  "noSavedGames": "저장된 게임이 없습니다",
+  "startNewGame": "새 게임 시작",
+  "character": "캐릭터",
+  "level": "레벨",
+  "lastPlayed": "마지막 플레이",
+  "continue": "이어하기",
+  "never": "없음",
+  "noFate": "운명 없음",
+
   "errors": {
     "usernameRequired": "캐릭터 이름을 입력해주세요",
     "createGameFailed": "게임 생성에 실패했습니다",
-    "loadFateFailed": "운명 데이터를 로드하는데 실패했습니다"
+    "loadFateFailed": "운명 데이터를 로드하는데 실패했습니다",
+    "loadSessionsFailed": "저장된 게임 목록을 불러오는데 실패했습니다"
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
@@ -35,6 +35,7 @@ interface GameState {
     type: string;
     level: number;
   }>;
+  lastSaved?: number;
 }
 
 const initialState: GameState = {
@@ -68,54 +69,102 @@ export default function MainGamePage() {
   const [gameState, setGameState] = useState<GameState>(initialState);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [fate, setFate] = useState<FateResult | null>(null);
+  const [fateDescription, setFateDescription] = useState<string>('');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  useEffect(() => {
-    const { userId } = router.query;
+  const { userId } = router.query;
+
+  // 게임 상태 저장 함수
+  const saveGameState = useCallback(async () => {
+    if (!userId || !gameState.userId) return;
     
+    try {
+      setSaveStatus('saving');
+      
+      const response = await fetch('/api/game/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          gameState: {
+            ...gameState,
+            lastSaved: Date.now(),
+          },
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save game state');
+      }
+      
+      const data = await response.json();
+      
+      setLastSaved(new Date());
+      setSaveStatus('saved');
+      
+      // 3초 후 상태 초기화
+      setTimeout(() => {
+        setSaveStatus('idle');
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Error saving game state:', error);
+      setSaveStatus('error');
+      
+      // 3초 후 상태 초기화
+      setTimeout(() => {
+        setSaveStatus('idle');
+      }, 3000);
+    }
+  }, [userId, gameState]);
+
+  // 정기적인 자동 저장 설정
+  useEffect(() => {
+    if (!userId || isLoading) return;
+    
+    // 5분마다 자동 저장
+    const autoSaveInterval = setInterval(() => {
+      saveGameState();
+    }, 5 * 60 * 1000);
+    
+    return () => clearInterval(autoSaveInterval);
+  }, [userId, isLoading, saveGameState]);
+
+  // 게임 데이터 로드
+  useEffect(() => {
     if (!userId) {
       router.push('/');
       return;
     }
     
-    // 게임 상태 로드
     async function loadGameState() {
       setIsLoading(true);
       try {
-        // 1. 프로필 데이터 로드
-        const profileResponse = await fetch(`/api/stats/profile?userId=${userId}`);
-        if (!profileResponse.ok) {
-          throw new Error('Failed to load profile');
-        }
-        const profileData = await profileResponse.json();
+        // 게임 상태 로드 API 호출
+        const response = await fetch(`/api/game/load?userId=${userId}`);
         
-        // 2. 운명 데이터 로드
-        const fateResponse = await fetch(`/api/fate/get?userId=${userId}`);
-        let fateData = null;
-        
-        if (fateResponse.ok) {
-          fateData = await fateResponse.json();
-          setFate(fateData);
-          
-          // 3. 운명 데이터로 스탯 초기화
-          const updatedState = {
-            ...initialState,
-            ...profileData,
-            userId: userId as string,
-            stats: { ...fateData.startingStats },
-            traits: [...fateData.startingTraits],
-            fate: fateData.fate
-          };
-          
-          setGameState(updatedState);
-        } else {
-          // 운명 데이터가 없는 경우 기본값으로 초기화
-          setGameState({
-            ...initialState,
-            ...profileData,
-            userId: userId as string,
-          });
+        if (!response.ok) {
+          throw new Error('Failed to load game data');
         }
+        
+        const data = await response.json();
+        
+        // 게임 상태 설정
+        setGameState(data.gameState);
+        
+        // 운명 설명 설정
+        if (data.fateData && data.fateData.description) {
+          setFateDescription(data.fateData.description);
+        }
+        
+        // 마지막 저장 시간 설정
+        if (data.gameState.lastSaved) {
+          setLastSaved(new Date(data.gameState.lastSaved));
+        }
+        
       } catch (err) {
         console.error('Error loading game state:', err);
         setError('Failed to load game data');
@@ -125,8 +174,9 @@ export default function MainGamePage() {
     }
     
     loadGameState();
-  }, [router, router.query]);
+  }, [router, userId]);
 
+  // 로딩 화면
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
@@ -138,6 +188,7 @@ export default function MainGamePage() {
     );
   }
 
+  // 오류 화면
   if (error) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
@@ -155,15 +206,41 @@ export default function MainGamePage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-6">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold">{gameState.username}</h1>
-          <div className="flex justify-between items-center mt-2">
-            <div>
-              <span className="text-gray-400">{t('game:age')}:</span> {gameState.age}
+        <header className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">{gameState.username}</h1>
+            <div className="flex justify-between items-center mt-2">
+              <div className="mr-4">
+                <span className="text-gray-400">{t('game:age')}:</span> {gameState.age}
+              </div>
+              <div>
+                <span className="text-gray-400">{t('game:realm')}:</span> {gameState.cultivation.realm} ({gameState.cultivation.level})
+              </div>
             </div>
-            <div>
-              <span className="text-gray-400">{t('game:realm')}:</span> {gameState.cultivation.realm} ({gameState.cultivation.level})
-            </div>
+          </div>
+          
+          <div className="flex items-center">
+            <button 
+              onClick={saveGameState}
+              disabled={saveStatus === 'saving'}
+              className={`px-4 py-2 rounded-md ${
+                saveStatus === 'saving' ? 'bg-gray-600' : 
+                saveStatus === 'saved' ? 'bg-green-600' : 
+                saveStatus === 'error' ? 'bg-red-600' : 
+                'bg-indigo-600 hover:bg-indigo-700'
+              }`}
+            >
+              {saveStatus === 'saving' ? t('game:saving') : 
+               saveStatus === 'saved' ? t('game:saved') : 
+               saveStatus === 'error' ? t('game:saveError') : 
+               t('game:save')}
+            </button>
+            
+            {lastSaved && (
+              <div className="ml-4 text-sm text-gray-400">
+                {t('game:lastSaved')}: {lastSaved.toLocaleString()}
+              </div>
+            )}
           </div>
         </header>
         
@@ -173,10 +250,10 @@ export default function MainGamePage() {
             <h2 className="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">
               {t('game:fate')}
             </h2>
-            {fate ? (
+            {gameState.fate ? (
               <div>
-                <h3 className="font-medium text-indigo-400">{fate.fate}</h3>
-                <p className="text-sm mt-2">{fate.description}</p>
+                <h3 className="font-medium text-indigo-400">{gameState.fate}</h3>
+                <p className="text-sm mt-2">{fateDescription}</p>
               </div>
             ) : (
               <p className="text-gray-400 italic">{t('game:noFateSelected')}</p>
