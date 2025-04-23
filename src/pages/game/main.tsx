@@ -68,7 +68,7 @@ export default function MainGamePage() {
   const [gameState, setGameState] = useState<GameState>(initialState);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [fate, setFate] = useState<FateResult | null>(null);
+  const [fateDescription, setFateDescription] = useState<string>('');
 
   useEffect(() => {
     const { userId } = router.query;
@@ -95,16 +95,38 @@ export default function MainGamePage() {
         
         if (fateResponse.ok) {
           fateData = await fateResponse.json();
-          setFate(fateData);
+          setFateDescription(fateData.description);
           
-          // 3. 운명 데이터로 스탯 초기화
+          // 프로필에 이미 스탯이 설정되어 있으면 그대로 사용, 없으면 운명 데이터로 초기화
+          let statsData = {};
+          
+          if (profileData.stats) {
+            // 프로필에서 스탯 값만 추출
+            Object.keys(profileData.stats).forEach(key => {
+              statsData[key] = profileData.stats[key].value;
+            });
+          } else if (fateData && fateData.startingStats) {
+            // 운명 데이터에서 스탯 가져오기
+            statsData = { ...fateData.startingStats };
+          } else {
+            // 기본 스탯
+            statsData = { 
+              qiGeneration: 1,
+              technique: 1, 
+              perception: 1, 
+              luck: 1, 
+              clarity: 1 
+            };
+          }
+          
+          // 3. 게임 상태 업데이트
           const updatedState = {
             ...initialState,
-            ...profileData,
             userId: userId as string,
-            stats: { ...fateData.startingStats },
-            traits: [...fateData.startingTraits],
-            fate: fateData.fate
+            username: profileData.username || 'Unknown Cultivator',
+            stats: statsData,
+            traits: profileData.traits || [],
+            fate: profileData.fate || fateData.fate
           };
           
           setGameState(updatedState);
@@ -112,8 +134,10 @@ export default function MainGamePage() {
           // 운명 데이터가 없는 경우 기본값으로 초기화
           setGameState({
             ...initialState,
-            ...profileData,
             userId: userId as string,
+            username: profileData.username || 'Unknown Cultivator',
+            traits: profileData.traits || [],
+            fate: profileData.fate
           });
         }
       } catch (err) {
@@ -173,10 +197,10 @@ export default function MainGamePage() {
             <h2 className="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">
               {t('game:fate')}
             </h2>
-            {fate ? (
+            {gameState.fate ? (
               <div>
-                <h3 className="font-medium text-indigo-400">{fate.fate}</h3>
-                <p className="text-sm mt-2">{fate.description}</p>
+                <h3 className="font-medium text-indigo-400">{gameState.fate}</h3>
+                <p className="text-sm mt-2">{fateDescription}</p>
               </div>
             ) : (
               <p className="text-gray-400 italic">{t('game:noFateSelected')}</p>
