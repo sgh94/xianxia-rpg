@@ -1,0 +1,28 @@
+{
+  "title": "Xianxia RPG",
+  "welcome": "Welcome to the World of Xianxia",
+  "description": "A Xianxia simulation RPG featuring branching narratives and replayable 'runs'. Cultivate your strength and challenge your fate.",
+  "newGame": "New Game",
+  "continueGame": "Continue Game",
+  "stats": {
+    "attack": "Attack",
+    "fortitude": "Fortitude",
+    "critical": "Critical",
+    "technique": "Technique",
+    "qiGeneration": "Qi Generation",
+    "perception": "Perception",
+    "cultSpeed": "Cultivation Speed",
+    "clarity": "Clarity",
+    "pillRefining": "Pill Refining",
+    "forging": "Forging",
+    "alchemy": "Alchemy",
+    "gemCarving": "Gem Carving",
+    "luck": "Luck",
+    "fiveElements": "Five-Elements"
+  },
+  "fate": {
+    "title": "Choose Your Fate",
+    "question": "What life do you seek?",
+    "submit": "Determine Fate"
+  }
+}
