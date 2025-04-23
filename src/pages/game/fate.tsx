@@ -55,9 +55,38 @@ export default function FatePage() {
     }
   };
 
-  const handleStartGame = () => {
-    // In a real app, we would save the chosen fate and redirect to game setup
-    router.push('/game/new');
+  const handleStartGame = async () => {
+    if (!fateResult) return;
+    
+    try {
+      setIsLoading(true);
+      // 고유한 사용자 ID 생성
+      const userId = 'test-user-' + Date.now();
+      
+      // 운명 데이터 저장
+      const response = await fetch('/api/fate/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          fate: fateResult,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('운명 저장 실패');
+      }
+      
+      // 저장 후 새 게임 페이지로 이동 (userId 파라미터 포함)
+      router.push(`/game/new?userId=${userId}`);
+    } catch (err) {
+      console.error('운명 저장 중 오류:', err);
+      setError(t('fate:errors.saveFailed'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -125,8 +154,9 @@ export default function FatePage() {
               <button
                 onClick={handleStartGame}
                 className="flex-1 py-2 bg-indigo-600 rounded-md font-medium hover:bg-indigo-700 transition-colors"
+                disabled={isLoading}
               >
-                {t('fate:acceptFate')}
+                {isLoading ? t('fate:saving') : t('fate:acceptFate')}
               </button>
             </div>
           </div>
