@@ -80,16 +80,28 @@ export default function NewGamePage() {
         }),
       });
       
+      const responseData = await gameResponse.json();
+      
       if (!gameResponse.ok) {
-        throw new Error('Failed to create game');
+        throw new Error(responseData.message || 'Failed to create game');
       }
       
       // 3. 게임 메인 화면으로 이동
       router.push(`/game/main`);
       
-    } catch (err) {
-      console.error('Error:', err);
-      setError(t('game:errors.createGameFailed'));
+    } catch (err: any) {
+      console.error('Game creation error:', err);
+      
+      // 오류 메시지 설정
+      if (err.message && err.message.includes('운명을 선택')) {
+        setError(t('game:errors.needFate'));
+        // 자동으로 운명 선택 페이지로 리디렉션
+        setTimeout(() => {
+          router.push('/game/fate');
+        }, 2000);
+      } else {
+        setError(err.message || t('game:errors.createGameFailed'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -166,7 +178,11 @@ export default function NewGamePage() {
             )}
           </div>
           
-          {error && <p className="text-red-400 mb-4">{error}</p>}
+          {error && (
+            <div className="bg-red-900 bg-opacity-50 rounded-md p-3 mb-4">
+              <p className="text-red-300">{error}</p>
+            </div>
+          )}
           
           <div className="flex space-x-4">
             <Link
@@ -177,8 +193,8 @@ export default function NewGamePage() {
             </Link>
             <button
               onClick={handleCreateGame}
-              className="flex-1 py-2 bg-indigo-600 rounded-md font-medium hover:bg-indigo-700 transition-colors"
-              disabled={isLoading || !fate}
+              className="flex-1 py-2 bg-indigo-600 rounded-md font-medium hover:bg-indigo-700 transition-colors disabled:bg-indigo-900 disabled:cursor-not-allowed"
+              disabled={isLoading || !fate || !username.trim()}
             >
               {isLoading ? t('game:creating') : t('game:startGame')}
             </button>
