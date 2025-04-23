@@ -1,0 +1,15 @@
+{
+  "title": "选择你的命运",
+  "description": "你的选择决定你的命运",
+  "placeholder": "你想要什么样的人生？（例如：我想成为隐居山中修炼道术的隐士，我想通过武艺成为最强的战士，等）",
+  "loading": "正在生成命运...",
+  "startingStats": "起始属性",
+  "startingTraits": "起始特性",
+  "tryAgain": "重新尝试",
+  "acceptFate": "接受命运",
+  "backToHome": "返回首页",
+  "errors": {
+    "emptyPrompt": "请输入你想要的命运",
+    "generateFailed": "生成命运失败。请重试。"
+  }
+}
