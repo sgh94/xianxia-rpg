@@ -5,7 +5,8 @@ const nextConfig = {
   reactStrictMode: true,
   i18n,
   env: {
-    CLAUDE_API_URL: process.env.CLAUDE_API_URL,
+    GEMINI_API_URL: process.env.GEMINI_API_URL,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
 };
 
