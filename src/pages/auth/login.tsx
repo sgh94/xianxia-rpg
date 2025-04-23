@@ -43,12 +43,8 @@ export default function LoginPage() {
         throw new Error(data.message || '로그인 실패');
       }
       
-      // 로그인 성공 - 리디렉션
-      if (router.query.redirect) {
-        router.push(router.query.redirect as string);
-      } else {
-        router.push('/');
-      }
+      // 로그인 성공 - 게임 메인 화면으로 리디렉션
+      router.push('/game/main');
       
     } catch (err) {
       setError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다');
