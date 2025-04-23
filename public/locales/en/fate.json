@@ -1,0 +1,15 @@
+{
+  "title": "Choose Your Fate",
+  "description": "Your choices determine your destiny",
+  "placeholder": "What kind of life do you seek? (e.g., I want to be a recluse in the mountains cultivating the Dao, I want to become the strongest warrior through martial arts, etc.)",
+  "loading": "Generating fate...",
+  "startingStats": "Starting Stats",
+  "startingTraits": "Starting Traits",
+  "tryAgain": "Try Again",
+  "acceptFate": "Accept Fate",
+  "backToHome": "Back to Home",
+  "errors": {
+    "emptyPrompt": "Please enter your desired fate",
+    "generateFailed": "Failed to generate fate. Please try again."
+  }
+}
