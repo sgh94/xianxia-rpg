@@ -48,14 +48,24 @@ export async function createUserProfile(userId: string, username: string, locale
     achievements: []
   };
   
-  await kv.set(`user:${userId}:profile`, profile);
+  try {
+    await kv.set(`user:${userId}:profile`, profile);
+  } catch (error) {
+    console.error('KV 저장 오류:', error);
+    // KV 저장 실패해도 프로필 객체는 반환
+  }
   
   return profile;
 }
 
 // 사용자 프로필 불러오기
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
-  return kv.get(`user:${userId}:profile`);
+  try {
+    return await kv.get(`user:${userId}:profile`);
+  } catch (error) {
+    console.error(`Error fetching profile for user ${userId}:`, error);
+    return null;
+  }
 }
 
 // 스탯에 EP 추가
@@ -82,7 +92,12 @@ export async function addEP(userId: string, statKey: StatKey, amount: number): P
   }
   
   // 프로필 저장
-  await kv.set(`user:${userId}:profile`, profile);
+  try {
+    await kv.set(`user:${userId}:profile`, profile);
+  } catch (error) {
+    console.error('프로필 저장 오류:', error);
+    // 저장 오류가 발생해도 업데이트된 스탯 반환
+  }
   
   return stat;
 }
@@ -97,7 +112,12 @@ export async function updateUserProfile(userId: string, updates: Partial<UserPro
   
   const updatedProfile = { ...profile, ...updates };
   
-  await kv.set(`user:${userId}:profile`, updatedProfile);
+  try {
+    await kv.set(`user:${userId}:profile`, updatedProfile);
+  } catch (error) {
+    console.error('프로필 업데이트 오류:', error);
+    // KV 저장 실패해도 업데이트된 프로필 객체는 반환
+  }
   
   return updatedProfile;
 }
