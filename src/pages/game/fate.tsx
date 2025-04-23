@@ -1,18 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Link from 'next/link';
 import { FateResult } from '@modules/fate/types';
+import AuthHeader from '@components/AuthHeader';
+import { useAuthContext } from '@contexts/AuthContext';
 
 export default function FatePage() {
   const router = useRouter();
   const { t } = useTranslation(['common', 'fate']);
+  const { isAuthenticated, requireAuth } = useAuthContext();
+  
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [fateResult, setFateResult] = useState<FateResult | null>(null);
   const [error, setError] = useState('');
+
+  // 인증 확인
+  useEffect(() => {
+    requireAuth();
+  }, [requireAuth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,29 +35,26 @@ export default function FatePage() {
     setError('');
     
     try {
-      // In a real app, we'd get a real userId from authentication
-      const userId = 'test-user-' + Date.now();
-      
       const response = await fetch('/api/fate/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId,
           prompt,
           locale: router.locale,
         }),
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Failed to generate fate');
+        throw new Error(data.message || 'Failed to generate fate');
       }
       
-      const result = await response.json();
-      setFateResult(result);
+      setFateResult(data);
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error generating fate:', err);
       setError(t('fate:errors.generateFailed'));
     } finally {
       setIsLoading(false);
@@ -60,8 +66,6 @@ export default function FatePage() {
     
     try {
       setIsLoading(true);
-      // 고유한 사용자 ID 생성
-      const userId = 'test-user-' + Date.now();
       
       // 운명 데이터 저장
       const response = await fetch('/api/fate/save', {
@@ -70,17 +74,17 @@ export default function FatePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId,
           fate: fateResult,
         }),
       });
       
       if (!response.ok) {
-        throw new Error('운명 저장 실패');
+        const data = await response.json();
+        throw new Error(data.message || '운명 저장 실패');
       }
       
-      // 저장 후 새 게임 페이지로 이동 (userId 파라미터 포함)
-      router.push(`/game/new?userId=${userId}`);
+      // 저장 후 새 게임 페이지로 이동
+      router.push('/game/new');
     } catch (err) {
       console.error('운명 저장 중 오류:', err);
       setError(t('fate:errors.saveFailed'));
@@ -89,8 +93,23 @@ export default function FatePage() {
     }
   };
 
+  // 인증되지 않은 상태에서는 로딩 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white">
+        <AuthHeader />
+        <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-xl">{t('fate:authRequired')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      <AuthHeader />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-6">{t('fate.title')}</h1>
         
@@ -107,7 +126,11 @@ export default function FatePage() {
                 placeholder={t('fate:placeholder')}
               />
               
-              {error && <p className="text-red-400 mb-4">{error}</p>}
+              {error && (
+                <div className="bg-red-900 bg-opacity-50 rounded-md p-3 mb-4">
+                  <p className="text-red-300">{error}</p>
+                </div>
+              )}
               
               <button
                 type="submit"
@@ -144,6 +167,12 @@ export default function FatePage() {
               </ul>
             </div>
             
+            {error && (
+              <div className="bg-red-900 bg-opacity-50 rounded-md p-3 mb-4">
+                <p className="text-red-300">{error}</p>
+              </div>
+            )}
+            
             <div className="flex space-x-4">
               <button
                 onClick={() => setFateResult(null)}
@@ -175,7 +204,7 @@ export default function FatePage() {
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
   return {
     props: {
-      ...(await serverSideTranslations(locale || 'ko', ['common', 'fate'])),
+      ...(await serverSideTranslations(locale || 'ko', ['common', 'fate', 'auth'])),
     },
   };
 };
