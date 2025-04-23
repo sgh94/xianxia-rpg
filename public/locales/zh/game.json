@@ -24,7 +24,18 @@
     "social": "社交",
     "exploration": "探索"
   },
+  "newGame": "新游戏",
+  "username": "用户名",
+  "usernamePlaceholder": "输入你的修炼者名称",
+  "noFateSelected": "未选择命运",
+  "chooseFate": "选择命运",
+  "changeFate": "更改命运",
+  "cancel": "取消",
+  "creating": "创建中...",
+  "startGame": "开始游戏",
   "errors": {
-    "fetchFailed": "获取数据失败。"
+    "fetchFailed": "获取数据失败。",
+    "usernameRequired": "用户名为必填项。",
+    "createGameFailed": "创建游戏失败。"
   }
 }
