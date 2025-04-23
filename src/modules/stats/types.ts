@@ -37,4 +37,5 @@ export interface UserProfile {
   reincarnations: number;
   reincarnationPoints: number;
   achievements: string[];
+  fate?: string; // 운명 이름
 }
