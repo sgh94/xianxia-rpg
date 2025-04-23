@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getUserFate } from '@modules/fate/service';
+import { requireAuth } from '@middleware/auth';
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -10,10 +11,11 @@ export default async function handler(
   }
 
   try {
-    const { userId } = req.query;
+    // 인증된 사용자의 ID 사용 (미들웨어에서 설정됨)
+    const userId = req.userId;
     
-    if (!userId || typeof userId !== 'string') {
-      return res.status(400).json({ message: 'Missing required fields' });
+    if (!userId) {
+      return res.status(400).json({ message: '사용자 ID가 없습니다' });
     }
     
     const fateResult = await getUserFate(userId);
@@ -28,3 +30,6 @@ export default async function handler(
     return res.status(500).json({ message: 'Failed to get fate' });
   }
 }
+
+// 인증 미들웨어 적용
+export default requireAuth(handler);
