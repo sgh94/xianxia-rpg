@@ -3,7 +3,7 @@
  */
 
 // API 설정
-const API_URL = process.env.GEMINI_API_URL;
+const API_URL = process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 const API_KEY = process.env.GEMINI_API_KEY;
 
 interface GeminiResponse {
@@ -26,8 +26,8 @@ export async function generateTextWithGemini(
   prompt: string,
   temperature: number = 0.7
 ): Promise<string> {
-  if (!API_URL || !API_KEY) {
-    throw new Error('Gemini API 설정이 없습니다. 환경 변수를 확인하세요.');
+  if (!API_KEY) {
+    throw new Error('Gemini API 키가 설정되지 않았습니다. 환경 변수 GEMINI_API_KEY를 확인하세요.');
   }
 
   try {
@@ -56,15 +56,27 @@ export async function generateTextWithGemini(
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Gemini API 오류: ${error}`);
+      const errorText = await response.text();
+      console.error('Gemini API Error:', errorText);
+      throw new Error(`Gemini API 오류 (${response.status}): ${errorText}`);
     }
 
     const data = await response.json() as GeminiResponse;
-    const generatedText = data.candidates[0]?.content.parts[0].text;
+    
+    if (!data.candidates || data.candidates.length === 0) {
+      throw new Error('Gemini API 응답에 candidates가 없습니다.');
+    }
+    
+    const candidate = data.candidates[0];
+    
+    if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+      throw new Error('Gemini API 응답 형식이 유효하지 않습니다.');
+    }
+    
+    const generatedText = candidate.content.parts[0].text;
 
     if (!generatedText) {
-      throw new Error('응답 형식이 예상과 다릅니다.');
+      throw new Error('Gemini API가 텍스트를 생성하지 않았습니다.');
     }
 
     return generatedText;
@@ -108,6 +120,7 @@ export function fillPromptTemplate(
  * @returns 파싱된 JSON 객체
  */
 export function extractJsonFromText(text: string): any {
+  // Try extracting JSON with regex first
   const jsonRegex = /```json\s*([\s\S]*?)\s*```|(\{[\s\S]*\})/;
   const match = text.match(jsonRegex);
   
@@ -117,15 +130,38 @@ export function extractJsonFromText(text: string): any {
       return JSON.parse(jsonString.trim());
     } catch (error) {
       console.error('JSON 파싱 오류:', error);
-      throw new Error('응답에서 유효한 JSON을 찾을 수 없습니다.');
+      // Continue to next method instead of throwing
     }
   }
   
+  // Try parsing the whole text as JSON
   try {
-    // 전체 텍스트를 JSON으로 파싱 시도
     return JSON.parse(text.trim());
   } catch (error) {
-    console.error('JSON 파싱 오류:', error);
-    throw new Error('응답에서 유효한 JSON을 찾을 수 없습니다.');
+    console.error('전체 텍스트 JSON 파싱 오류:', error);
   }
+  
+  // If we get here, try to extract any JSON-like structure
+  try {
+    const possibleJson = text.match(/\{.*\}/s);
+    if (possibleJson) {
+      return JSON.parse(possibleJson[0]);
+    }
+  } catch (error) {
+    console.error('JSON-like 구조 파싱 오류:', error);
+  }
+  
+  // If all parsing attempts fail, return a fallback object
+  return {
+    fate: "기본 운명",
+    description: "운명 생성 중 오류가 발생했습니다.",
+    startingStats: {
+      qiGeneration: 3,
+      clarity: 3,
+      perception: 3,
+      luck: 3,
+      technique: 3
+    },
+    startingTraits: ["시작의 여정"]
+  };
 }
