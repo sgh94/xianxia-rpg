@@ -1,0 +1,15 @@
+{
+  "title": "운명 선택",
+  "description": "당신의 선택이 운명을 결정합니다",
+  "placeholder": "어떤 삶을 살고 싶으신가요? (예: 산속의 은둔자가 되어 도를 닦고 싶습니다, 무예를 통해 최강의 전사가 되고 싶습니다, 등)",
+  "loading": "운명 생성 중...",
+  "startingStats": "시작 스탯",
+  "startingTraits": "시작 특성",
+  "tryAgain": "다시 시도",
+  "acceptFate": "운명 받아들이기",
+  "backToHome": "홈으로 돌아가기",
+  "errors": {
+    "emptyPrompt": "운명에 대한 내용을 입력해주세요",
+    "generateFailed": "운명 생성에 실패했습니다. 다시 시도해주세요."
+  }
+}
