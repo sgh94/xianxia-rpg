@@ -2,17 +2,16 @@ import { GetStaticProps } from 'next';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Link from 'next/link';
-import LanguageSwitcher from '@components/LanguageSwitcher';
+import AuthHeader from '@components/AuthHeader';
+import { useAuthContext } from '@contexts/AuthContext';
 
 export default function Home() {
   const { t } = useTranslation('common');
+  const { isAuthenticated } = useAuthContext();
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <header className="p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <LanguageSwitcher />
-      </header>
+      <AuthHeader />
       
       <main className="flex-grow flex flex-col items-center justify-center p-4">
         <div className="max-w-2xl w-full bg-gray-800 bg-opacity-50 p-8 rounded-lg shadow-lg text-center">
@@ -27,12 +26,14 @@ export default function Home() {
               {t('newGame')}
             </Link>
             
-            <Link 
-              href="/game/continue" 
-              className="block w-full py-3 px-6 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition-colors"
-            >
-              {t('continueGame')}
-            </Link>
+            {isAuthenticated && (
+              <Link 
+                href="/game/continue" 
+                className="block w-full py-3 px-6 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition-colors"
+              >
+                {t('continueGame')}
+              </Link>
+            )}
           </div>
         </div>
       </main>
@@ -47,7 +48,7 @@ export default function Home() {
 export const getStaticProps: GetStaticProps = async ({ locale }) => {
   return {
     props: {
-      ...(await serverSideTranslations(locale || 'ko', ['common'])),
+      ...(await serverSideTranslations(locale || 'ko', ['common', 'auth'])),
     },
   };
 };
