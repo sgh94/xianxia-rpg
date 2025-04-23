@@ -1,0 +1,30 @@
+{
+  "title": "Xianxia Cultivation",
+  "loading": "Loading...",
+  "backToHome": "Back to Home",
+  "noProfile": "No profile found.",
+  "createProfile": "Create Profile",
+  "life": "Life Force",
+  "traits": "Traits",
+  "noTraits": "No traits yet",
+  "stats": "Stats",
+  "availableEvents": "Available Events",
+  "noEvents": "No events available",
+  "eventDescription": "Participate in this event to gain experience and improve your cultivation.",
+  "minutes": "min",
+  "risk": "Risk",
+  "cultivation": "Cultivation",
+  "cultivationDesc": "Improve your stats and skills through cultivation.",
+  "inventory": "Inventory",
+  "inventoryDesc": "Manage your items and equipment.",
+  "achievements": "Achievements",
+  "achievementsDesc": "Check your achievements and rewards.",
+  "eventTypes": {
+    "combat": "Combat",
+    "social": "Social",
+    "exploration": "Exploration"
+  },
+  "errors": {
+    "fetchFailed": "Failed to fetch data."
+  }
+}
