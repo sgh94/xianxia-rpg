@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es2018",
     "lib": [
       "dom",
       "dom.iterable",
@@ -40,6 +40,18 @@
       ],
       "@contexts/*": [
         "./src/contexts/*"
+      ],
+      "@hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@pages/*": [
+        "./src/pages/*"
+      ],
+      "@types/*": [
+        "./src/types/*"
+      ],
+      "@middleware/*": [
+        "./src/middleware/*"
       ]
     }
   },

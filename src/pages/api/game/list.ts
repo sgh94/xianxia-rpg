@@ -1,6 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { kv } from '@vercel/kv';
 
+interface Profile {
+  username: string;
+  fate?: string;
+}
+
+interface GameState {
+  lastSaved: number;
+  cultivation?: {
+    level: number;
+  };
+  fate?: string;
+}
+
 interface GameSession {
   id: string;
   username: string;
@@ -20,17 +33,17 @@ export default async function handler(
   try {
     // KV 스토어에서 모든 프로필과 게임 상태 키 검색
     const profileKeys = await kv.keys('user:*:profile');
-    
+
     const sessionPromises = profileKeys.map(async (key) => {
       // 사용자 ID 추출 (user:userId:profile 형식에서)
       const userId = key.split(':')[1];
-      
+
       // 프로필 데이터와 게임 상태 로드
       const [profile, gameState] = await Promise.all([
-        kv.get(key),
-        kv.get(`user:${userId}:game_state`)
+        kv.get<Profile>(key),
+        kv.get<GameState>(`user:${userId}:game_state`)
       ]);
-      
+
       // 게임 세션 정보 구성
       if (profile && gameState) {
         return {
@@ -49,19 +62,19 @@ export default async function handler(
           fate: profile.fate
         } as GameSession;
       }
-      
+
       return null;
     });
-    
+
     // 모든 세션 정보 수집
     const sessions = (await Promise.all(sessionPromises))
-      .filter(Boolean) // 빈 세션 필터링
+      .filter((session): session is GameSession => session !== null)
       .sort((a, b) => b.lastSaved - a.lastSaved); // 최근에 저장된 순서로 정렬
-    
+
     return res.status(200).json({ sessions });
   } catch (error) {
     console.error('Error listing game sessions:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: error instanceof Error ? error.message : 'Failed to list game sessions'
     });
   }
